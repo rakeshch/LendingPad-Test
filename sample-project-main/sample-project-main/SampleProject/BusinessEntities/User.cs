@@ -53,7 +53,7 @@ namespace BusinessEntities
         {
             if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentNullException("Name was not provided.");
+                throw new ArgumentNullException(nameof(name), "Name was not provided.");
             }
             _name = name;
         }
@@ -62,7 +62,7 @@ namespace BusinessEntities
         {
             if (string.IsNullOrEmpty(email))
             {
-                throw new ArgumentNullException("Name was not provided.");
+                throw new ArgumentNullException(nameof(email), "Email was not provided.");
             }
             _email = email;
         }
@@ -74,7 +74,11 @@ namespace BusinessEntities
 
         public void SetAge(int age)
         {
-            _email = _name;
+            if (age < 0 || age > 120)
+            {
+                throw new ArgumentOutOfRangeException(nameof(age), "Age must be between 0 and 120.");
+            }
+            _age = age;
         }
 
         public void SetMonthlySalary(decimal? monthlySalary)

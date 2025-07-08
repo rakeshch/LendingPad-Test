@@ -26,28 +26,37 @@ namespace WebApi.Controllers
 
         [Route("{userId:guid}/create")]
         [HttpPost]
-        public HttpResponseMessage CreateUser(Guid userId, [FromBody] UserModel model)
+        public IHttpActionResult CreateUser(Guid userId, [FromBody] UserModel model)
         {
-            var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var user = _createUserService.Create(userId, model.Name, model.Email, model.Type, model.AnnualSalary, model.Age, model.Tags);
             return Found(new UserData(user));
         }
 
         [Route("{userId:guid}/update")]
         [HttpPost]
-        public HttpResponseMessage UpdateUser(Guid userId, [FromBody] UserModel model)
+        public IHttpActionResult UpdateUser(Guid userId, [FromBody] UserModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var user = _getUserService.GetUser(userId);
             if (user == null)
             {
                 return DoesNotExist();
             }
-            _updateUserService.Update(user, model.Name, model.Email, model.Type, model.AnnualSalary, model.Tags);
+            _updateUserService.Update(user, model.Name, model.Email, model.Type, model.AnnualSalary, model.Age, model.Tags);
             return Found(new UserData(user));
         }
 
         [Route("{userId:guid}/delete")]
         [HttpDelete]
-        public HttpResponseMessage DeleteUser(Guid userId)
+        public IHttpActionResult DeleteUser(Guid userId)
         {
             var user = _getUserService.GetUser(userId);
             if (user == null)
@@ -60,7 +69,7 @@ namespace WebApi.Controllers
 
         [Route("{userId:guid}")]
         [HttpGet]
-        public HttpResponseMessage GetUser(Guid userId)
+        public IHttpActionResult GetUser(Guid userId)
         {
             var user = _getUserService.GetUser(userId);
             return Found(new UserData(user));
@@ -68,7 +77,7 @@ namespace WebApi.Controllers
 
         [Route("list")]
         [HttpGet]
-        public HttpResponseMessage GetUsers(int skip, int take, UserTypes? type = null, string name = null, string email = null)
+        public IHttpActionResult GetUsers(int skip, int take, UserTypes? type = null, string name = null, string email = null)
         {
             var users = _getUserService.GetUsers(type, name, email)
                                        .Skip(skip).Take(take)
@@ -79,7 +88,7 @@ namespace WebApi.Controllers
 
         [Route("clear")]
         [HttpDelete]
-        public HttpResponseMessage DeleteAllUsers()
+        public IHttpActionResult DeleteAllUsers()
         {
             _deleteUserService.DeleteAll();
             return Found();
@@ -87,9 +96,18 @@ namespace WebApi.Controllers
 
         [Route("list/tag")]
         [HttpGet]
-        public HttpResponseMessage GetUsersByTag(string tag)
+        public IHttpActionResult GetUsersByTag(string tag, int skip = 0, int take = 10)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(tag))
+                return BadRequest("Tag is required.");
+
+            var users = _getUserService.GetUsers(userType: null, name: null, email: null, tag: tag)
+                                       .Skip(skip)
+                                       .Take(take)
+                                       .Select(u => new UserData(u))
+                                       .ToList();
+
+            return Found(users);
         }
     }
 }

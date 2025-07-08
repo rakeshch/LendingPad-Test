@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using BusinessEntities;
+﻿using BusinessEntities;
 using Common;
 using Data.Indexes;
 using Raven.Client;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Data.Repositories
 {
@@ -17,7 +18,12 @@ namespace Data.Repositories
             _documentSession = documentSession;
         }
 
-        public IEnumerable<User> Get(UserTypes? userType = null, string name = null, string email = null)
+        public User GetById(Guid id)
+        {
+            return _documentSession.Load<User>(id);
+        }
+
+        public IEnumerable<User> Get(UserTypes? userType = null, string name = null, string email = null, string tag = null)
         {
             var query = _documentSession.Advanced.DocumentQuery<User, UsersListIndex>();
 
@@ -48,6 +54,14 @@ namespace Data.Repositories
                     query = query.AndAlso();
                 }
                 query = query.WhereEquals("Email", email);
+            }
+            if (tag != null)
+            {
+                if (hasFirstParameter)
+                {
+                    query = query.AndAlso();
+                }
+                query = query.ContainsAny("Tags", new[] { tag });
             }
             return query.ToList();
         }

@@ -6,19 +6,19 @@ namespace WebApi.Controllers
 {
     public abstract class BaseApiController : ApiController
     {
-        public HttpResponseMessage Found(object obj)
+        public IHttpActionResult Found(object obj)
         {
-            return ControllerContext.Request.CreateResponse(HttpStatusCode.OK, obj);
+            return Ok(obj); // built-in Web API 2 method
         }
 
-        public HttpResponseMessage Found()
+        public IHttpActionResult Found()
         {
-            return ControllerContext.Request.CreateResponse(HttpStatusCode.OK);
+            return Ok(); // Built-in helper for 200 OK
         }
 
-        public HttpResponseMessage DoesNotExist()
+        public IHttpActionResult DoesNotExist()
         {
-            return ControllerContext.Request.CreateResponse(HttpStatusCode.NotFound);
+            return NotFound(); // Built-in Web API 2 method
         }
     }
 }
